@@ -1,65 +1,80 @@
-version: '2.1'
-
+version: '3.7'
 services:
-  mai-db-node-ex01:
-    build:
-      context: mariadb
-      dockerfile: Dockerfile
-    container_name: mai-db-node-ex01
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: archdb
-      MYSQL_USER: stud
-      MYSQL_PASSWORD: stud
-      MYSQL_ROOT_PASSWORD: '1'
-    command: >
-      --sql-mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
-      --general-log=ON
-      --log-queries-not-using-indexes=ON
-    networks:
-      - arch-network
-    ports:
-      - 3360:3306
-    healthcheck:
-      test: "/usr/bin/mariadb --user=stud --password=stud --execute \"SHOW DATABASES;\""
-      interval: 15s
-      timeout: 1s
-      retries: 5
+  arch:
+    tty: true
+    container_name: arch
     volumes:
-      - db-node-ex01-data:/var/lib/mysql
-
-  my_service:
+      - .:/opt/arch
     build:
-      context: my_service
+      context: .
       dockerfile: Dockerfile
-    container_name: my_service
-    environment:
-      - DB_HOST=mai-db-node-ex01
-      - DB_PORT=3306
-      - DB_LOGIN=stud
-      - DB_PASSWORD=stud
-      - DB_DATABASE=archdb
     ports:
       - 8080:8080
     networks:
       - arch-network
-    depends_on:
-      mai-db-node-ex01:
-        condition: service_healthy
-  # other_server:
-  #   build:
-  #     context: other_server
-  #     dockerfile: Dockerfile
-  #   container_name: other_server
-  #   environment:
-  #     - SERVICE_HOST=my_service
+
+  structurizr:
+    image: structurizr/lite
+    ports:
+      - 8082:8080
+    volumes:
+      - ./hl_mai_lab_00:/usr/local/structurizr:z
+    networks:
+      - arch-network
+
+  db:
+    container_name: postgres
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=stud
+      - POSTGRES_PASSWORD=stud
+      - PGDATA=/data/postgres
+      - POSTGRES_DB=archdb
+    volumes:
+      - db:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - arch-network
+
+  # cache:
+  #   image: redis:6.2-alpine
+  #   restart: always
   #   ports:
-  #     - 8081:8081
+  #     - '6379:6379'
+  #   command: redis-server --save 20 1 --loglevel warning 
   #   networks:
   #     - arch-network
-
+  #   volumes: 
+  #     - cache:/data
+      
+  # mongo:
+  #   image: mongo:5.0
+  #   container_name: mongodb
+  #   #environment:
+  #     # MONGO_INITDB_ROOT_USERNAME: stud
+  #     # MONGO_INITDB_ROOT_PASSWORD: stud
+  #     # MONGO_INITDB_ROOT_DATABASE: arch
+  #   restart: on-failure
+  #   networks:
+  #     - arch-network
+  #   volumes:
+  #     - mongodbdata:/data/db
+  #     - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+  #   ports:
+  #     - '27017:27017'
+  #   healthcheck:
+  #     test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
 volumes:
-  db-node-ex01-data:
+  db:
+  cache:
+  mongodbdata:
 
 networks:
   arch-network:

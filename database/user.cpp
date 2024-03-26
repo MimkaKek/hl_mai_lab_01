@@ -2,8 +2,6 @@
 #include "database.h"
 #include "../config/config.h"
 
-#include <Poco/Data/MySQL/Connector.h>
-#include <Poco/Data/MySQL/MySQLException.h>
 #include <Poco/Data/SessionFactory.h>
 #include <Poco/Data/RecordSet.h>
 #include <Poco/JSON/Parser.h>
@@ -26,26 +24,24 @@ namespace database
 
             Poco::Data::Session session = database::Database::get().create_session();
             Statement create_stmt(session);
-            create_stmt << "CREATE TABLE IF NOT EXISTS `User` (`id` INT NOT NULL AUTO_INCREMENT,"
-                        << "`first_name` VARCHAR(256) NOT NULL,"
-                        << "`last_name` VARCHAR(256) NOT NULL,"
-                        << "`login` VARCHAR(256) NOT NULL,"
-                        << "`password` VARCHAR(256) NOT NULL,"
-                        << "`email` VARCHAR(256) NULL,"
-                        << "`title` VARCHAR(1024) NULL,"
-                        << "PRIMARY KEY (`id`),KEY `fn` (`first_name`),KEY `ln` (`last_name`));",
+            create_stmt << "CREATE TABLE IF NOT EXISTS users (id SERIAL,"
+                        << "first_name VARCHAR(256) NOT NULL,"
+                        << "last_name VARCHAR(256) NOT NULL,"
+                        << "login VARCHAR(256) NOT NULL,"
+                        << "password VARCHAR(256) NOT NULL,"
+                        << "email VARCHAR(256) NULL,"
+                        << "title VARCHAR(1024) NULL);",
                 now;
         }
 
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::PostgreSQLException &e)
         {
-            std::cout << "connection:" << e.what() << std::endl;
+            std::cout << "connection:" << e.displayText() << std::endl;
             throw;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::ConnectionFailedException &e)
         {
-
-            std::cout << "statement:" << e.what() << std::endl;
+            std::cout << "connection:" << e.displayText() << std::endl;
             throw;
         }
     }
@@ -90,7 +86,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             long id;
-            select << "SELECT id FROM User where login=? and password=?",
+            select << "SELECT id FROM users where login=$1 and password=$2",
                 into(id),
                 use(login),
                 use(password),
@@ -98,14 +94,15 @@ namespace database
 
             select.execute();
             Poco::Data::RecordSet rs(select);
-            if (rs.moveFirst()) return id;
+            if (rs.moveFirst())
+                return id;
         }
 
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::PostgreSQL::StatementException &e)
         {
 
             std::cout << "statement:" << e.what() << std::endl;
@@ -119,7 +116,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             User a;
-            select << "SELECT id, first_name, last_name, email, title,login,password FROM User where id=?",
+            select << "SELECT id, first_name, last_name, email, title,login,password FROM users where id=$1",
                 into(a._id),
                 into(a._first_name),
                 into(a._last_name),
@@ -132,18 +129,18 @@ namespace database
 
             select.execute();
             Poco::Data::RecordSet rs(select);
-            if (rs.moveFirst()) return a;
+            if (rs.moveFirst())
+                return a;
         }
 
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::PostgreSQL::StatementException &e)
         {
 
             std::cout << "statement:" << e.what() << std::endl;
-            
         }
         return {};
     }
@@ -156,7 +153,7 @@ namespace database
             Statement select(session);
             std::vector<User> result;
             User a;
-            select << "SELECT id, first_name, last_name, email, title, login, password FROM User",
+            select << "SELECT id, first_name, last_name, email, title, login, password FROM users",
                 into(a._id),
                 into(a._first_name),
                 into(a._last_name),
@@ -174,12 +171,12 @@ namespace database
             return result;
         }
 
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;
             throw;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::PostgreSQL::StatementException &e)
         {
 
             std::cout << "statement:" << e.what() << std::endl;
@@ -197,7 +194,7 @@ namespace database
             User a;
             first_name += "%";
             last_name += "%";
-            select << "SELECT id, first_name, last_name, email, title, login, password FROM User where first_name LIKE ? and last_name LIKE ?",
+            select << "SELECT id, first_name, last_name, email, title, login, password FROM users where first_name LIKE $1 and last_name LIKE $2",
                 into(a._id),
                 into(a._first_name),
                 into(a._last_name),
@@ -217,12 +214,12 @@ namespace database
             return result;
         }
 
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;
             throw;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::PostgreSQL::StatementException &e)
         {
 
             std::cout << "statement:" << e.what() << std::endl;
@@ -238,7 +235,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement insert(session);
 
-            insert << "INSERT INTO User (first_name,last_name,email,title,login,password) VALUES(?, ?, ?, ?, ?, ?)",
+            insert << "INSERT INTO users (first_name,last_name,email,title,login,password) VALUES($1, $2, $3, $4, $5, $6)",
                 use(_first_name),
                 use(_last_name),
                 use(_email),
@@ -249,7 +246,7 @@ namespace database
             insert.execute();
 
             Poco::Data::Statement select(session);
-            select << "SELECT LAST_INSERT_ID()",
+            select << "SELECT LASTVAL()",
                 into(_id),
                 range(0, 1); //  iterate over result set one row at a time
 
@@ -259,12 +256,12 @@ namespace database
             }
             std::cout << "inserted:" << _id << std::endl;
         }
-        catch (Poco::Data::MySQL::ConnectionException &e)
+        catch (Poco::Data::PostgreSQL::ConnectionException &e)
         {
             std::cout << "connection:" << e.what() << std::endl;
             throw;
         }
-        catch (Poco::Data::MySQL::StatementException &e)
+        catch (Poco::Data::PostgreSQL::StatementException &e)
         {
 
             std::cout << "statement:" << e.what() << std::endl;

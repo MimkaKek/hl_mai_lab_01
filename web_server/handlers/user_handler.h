@@ -172,11 +172,12 @@ public:
                     get_identity(info, login, password);
                     if (auto id = database::User::auth(login, password))
                     {
+                        std::string token = generate_token(*id,login);
                         response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
                         response.setChunkedTransferEncoding(true);
                         response.setContentType("application/json");
                         std::ostream &ostr = response.send();
-                        ostr << "{ \"id\" : \"" << *id << "\"}" << std::endl;
+                        ostr << "{ \"id\" : \"" << *id << "\", \"Token\" : \""<< token <<"\"}" << std::endl;
                         return;
                     }
                 }

@@ -5,7 +5,9 @@ services:
     container_name: arch
     build:
       context: ./my_service
-      dockerfile: Dockerfile
+      dockerfile: debug
+    volumes:
+      - .:/app/
     environment:
       - DB_HOST=lab01_postgres
       - DB_PORT=5432

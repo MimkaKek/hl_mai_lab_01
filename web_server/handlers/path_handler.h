@@ -56,6 +56,7 @@ public:
     void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response)
     {
         HTMLForm form(request, request.stream());
+        std::cout << "Path Handle begin" << std::endl;
         try
         {
             if (hasSubstr(request.getURI(), "/path") && form.has("id") && (request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET))
@@ -89,11 +90,11 @@ public:
                 }
             }
             else if (hasSubstr(request.getURI(), "/path") && (request.getMethod() == Poco::Net::HTTPRequest::HTTP_POST)
-                        && (form.has("begin") && form.has("end")))
+                        && (form.has("startpoint") && form.has("endpoint")))
             {
                 auto path = database::Path();
-                path.begin() = form.get("begin");
-                path.end() = form.get("end");
+                path.startpoint() = form.get("startpoint");
+                path.endpoint()   = form.get("endpoint");
                 path.save_to_db();
                 response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
                 response.setChunkedTransferEncoding(true);
@@ -103,10 +104,10 @@ public:
                 return;
             }
             else if (hasSubstr(request.getURI(), "/path/search") && (request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET)
-                        && (form.has("begin")))
+                        && (form.has("startpoint")))
             {
-                std::string _begin = form.get("begin");
-                auto results = database::Path::search(_begin);
+                std::string _startpoint = form.get("startpoint");
+                auto results = database::Path::search(_startpoint);
                 Poco::JSON::Array arr;
                 for (auto s : results)
                     arr.add(s.toJSON());

@@ -24,9 +24,12 @@ namespace database
 
             Poco::Data::Session session = database::Database::get().create_session();
             Statement create_stmt(session);
+            std::cout << "Test" << std::endl;
+
             create_stmt << "CREATE TABLE IF NOT EXISTS paths (id SERIAL,"
-                        << "begin VARCHAR(256) NOT NULL,"
-                        << "end VARCHAR(256) NOT NULL);", now;
+                        << "startpoint VARCHAR(256) NOT NULL,"
+                        << "endpoint VARCHAR(256) NOT NULL);", now;
+
         }
 
         catch (Poco::Data::PostgreSQL::PostgreSQLException &e)
@@ -45,8 +48,8 @@ namespace database
     {
         Poco::JSON::Object::Ptr root = new Poco::JSON::Object();
         root->set("id", _id);
-        root->set("begin", _begin);
-        root->set("end", _end);
+        root->set("startpoint", _startpoint);
+        root->set("end", _endpoint);
         return root;
     }
 
@@ -58,8 +61,8 @@ namespace database
         Poco::JSON::Object::Ptr object = result.extract<Poco::JSON::Object::Ptr>();
 
         path.id() = object->getValue<long>("id");
-        path.begin() = object->getValue<std::string>("begin");
-        path.end() = object->getValue<std::string>("end");
+        path.startpoint() = object->getValue<std::string>("startpoint");
+        path.endpoint() = object->getValue<std::string>("end");
 
         return path;
     }
@@ -71,10 +74,10 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             Path a;
-            select << "SELECT id, begin, end FROM paths where id=$1",
+            select << "SELECT id, startpoint, endpoint FROM paths where id=$1",
                 into(a._id),
-                into(a._begin),
-                into(a._end),
+                into(a._startpoint),
+                into(a._endpoint),
                 use(id),
                 range(0, 1); //  iterate over result set one row at a time
 
@@ -104,10 +107,10 @@ namespace database
             Statement select(session);
             std::vector<Path> result;
             Path a;
-            select << "SELECT id, begin, end FROM paths",
+            select << "SELECT id, startpoint, endpoint FROM paths",
                 into(a._id),
-                into(a._begin),
-                into(a._end),
+                into(a._startpoint),
+                into(a._endpoint),
                 range(0, 1); //  iterate over result set one row at a time
 
             while (!select.done())
@@ -131,7 +134,7 @@ namespace database
         }
     }
 
-    std::vector<Path> Path::search(std::string begin)
+    std::vector<Path> Path::search(std::string startpoint)
     {
         try
         {
@@ -139,12 +142,12 @@ namespace database
             Statement select(session);
             std::vector<Path> result;
             Path a;
-            begin += "%";
-            select << "SELECT id, begin, end FROM paths where begin LIKE $1",
+            startpoint += "%";
+            select << "SELECT id, startpoint, endpoint FROM paths where startpoint LIKE $1",
                 into(a._id),
-                into(a._begin),
-                into(a._end),
-                use(begin),
+                into(a._startpoint),
+                into(a._endpoint),
+                use(startpoint),
                 range(0, 1); //  iterate over result set one row at a time
 
             while (!select.done())
@@ -176,9 +179,9 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement insert(session);
 
-            insert << "INSERT INTO paths (begin,end) VALUES($1, $2)",
-                use(_begin),
-                use(_end);
+            insert << "INSERT INTO paths (startpoint,endpoint) VALUES($1, $2)",
+                use(_startpoint),
+                use(_endpoint);
 
             insert.execute();
 
@@ -211,14 +214,14 @@ namespace database
         return _id;
     }
 
-    const std::string &Path::get_begin() const
+    const std::string &Path::get_startpoint() const
     {
-        return _begin;
+        return _startpoint;
     }
 
-    const std::string &Path::get_end() const
+    const std::string &Path::get_endpoint() const
     {
-        return _end;
+        return _endpoint;
     }
 
     long &Path::id()
@@ -226,13 +229,13 @@ namespace database
         return _id;
     }
 
-    std::string &Path::begin()
+    std::string &Path::startpoint()
     {
-        return _begin;
+        return _startpoint;
     }
 
-    std::string &Path::end()
+    std::string &Path::endpoint()
     {
-        return _end;
+        return _endpoint;
     }
 }

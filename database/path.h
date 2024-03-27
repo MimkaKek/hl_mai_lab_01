@@ -11,17 +11,17 @@ namespace database
     class Path {
         private:
             long        _id;
-            std::string _begin;
-            std::string _end;
+            std::string _startpoint;
+            std::string _endpoint;
 
         public:
             long               get_id() const;
-            const std::string &get_begin() const;
-            const std::string &get_end() const;
+            const std::string &get_startpoint() const;
+            const std::string &get_endpoint() const;
 
             long&        id();
-            std::string &begin();
-            std::string &end();
+            std::string &startpoint();
+            std::string &endpoint();
 
             static void init();
             static std::optional<Path> read_by_id(long id);

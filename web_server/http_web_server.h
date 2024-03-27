@@ -50,8 +50,8 @@ public:
     {
             database::User::init();
             database::Path::init();
-            database::Party::init();
-            database::Trip::init();
+            // database::Party::init();
+            // database::Trip::init();
             ServerSocket svs(Poco::Net::SocketAddress("0.0.0.0", 8080));
             HTTPServer srv(new HTTPRequestFactory(DateTimeFormat::SORTABLE_FORMAT), svs, new HTTPServerParams);
             srv.start();

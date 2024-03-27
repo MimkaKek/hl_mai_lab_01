@@ -38,10 +38,8 @@ using Poco::Util::OptionSet;
 using Poco::Util::ServerApplication;
 
 #include "http_request_factory.h"
-#include "../database/party.h"
+#include "../database/user.h"
 #include "../database/path.h"
-#include "../database/trip.h"
-#include "../database/party.h"
 
 class HTTPWebServer : public Poco::Util::ServerApplication
 {
@@ -50,8 +48,6 @@ public:
     {
             database::User::init();
             database::Path::init();
-            // database::Party::init();
-            // database::Trip::init();
             ServerSocket svs(Poco::Net::SocketAddress("0.0.0.0", 8080));
             HTTPServer srv(new HTTPRequestFactory(DateTimeFormat::SORTABLE_FORMAT), svs, new HTTPServerParams);
             srv.start();

@@ -3,17 +3,18 @@ services:
   arch:
     tty: true
     container_name: arch
-    volumes:
-      - ./my_service:/opt/arch
     build:
       context: ./my_service
       dockerfile: Dockerfile
     environment:
-      - DB_HOST=localhost
-      - DB_PORT=5438
+      - DB_HOST=lab01_postgres
+      - DB_PORT=5432
       - DB_LOGIN=stud
       - DB_PASSWORD=stud
       - DB_DATABASE=archdb
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - 8080:8080
     networks:
@@ -29,7 +30,7 @@ services:
   #     - arch-network
 
   db:
-    container_name: postgres
+    container_name: lab01_postgres
     image: postgres:15
     environment:
       - POSTGRES_USER=stud

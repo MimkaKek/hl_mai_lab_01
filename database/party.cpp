@@ -26,7 +26,7 @@ namespace database
             Statement create_stmt(session);
             create_stmt << "CREATE TABLE IF NOT EXISTS parties (id SERIAL,"
                         << "id_trip SERIAL NOT NULL REFERENCES trips(id),"
-                        << "id_participant SERIAL NOT NULL REFERENCES users(id),", now;
+                        << "id_participant SERIAL NOT NULL REFERENCES users(id));", now;
         }
 
         catch (Poco::Data::PostgreSQL::PostgreSQLException &e)

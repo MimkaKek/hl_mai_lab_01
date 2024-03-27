@@ -29,7 +29,7 @@ namespace database
                         << "id_owner SERIAL NOT NULL REFERENCES users(id),"
                         << "name VARCHAR(256) NOT NULL,"
                         << "start_time VARCHAR(256) NOT NULL,"
-                        << "fin_time VARCHAR(256) NOT NULL", now;
+                        << "fin_time VARCHAR(256) NOT NULL);", now;
         }
 
         catch (Poco::Data::PostgreSQL::PostgreSQLException &e)

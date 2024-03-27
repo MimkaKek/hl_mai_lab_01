@@ -4,7 +4,7 @@ services:
     tty: true
     container_name: arch
     volumes:
-      - .:/opt/arch
+      - ./my_service:/opt/arch
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,14 +13,14 @@ services:
     networks:
       - arch-network
 
-  structurizr:
-    image: structurizr/lite
-    ports:
-      - 8082:8080
-    volumes:
-      - ./hl_mai_lab_00:/usr/local/structurizr:z
-    networks:
-      - arch-network
+  # structurizr:
+  #   image: structurizr/lite
+  #   ports:
+  #     - 8082:8080
+  #   volumes:
+  #     - ./hl_mai_lab_00:/usr/local/structurizr:z
+  #   networks:
+  #     - arch-network
 
   db:
     container_name: postgres

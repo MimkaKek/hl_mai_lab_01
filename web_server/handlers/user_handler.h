@@ -19,7 +19,7 @@
 #include "Poco/Util/Option.h"
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
-#include <iostream>
+#include "../lib/common.h"
 #include <iostream>
 #include <fstream>
 
@@ -45,21 +45,6 @@ using Poco::Util::ServerApplication;
 
 #include "../../database/user.h"
 #include "../../helper.h"
-
-static bool hasSubstr(const std::string &str, const std::string &substr)
-{
-    if (str.size() < substr.size())
-        return false;
-    for (size_t i = 0; i <= str.size() - substr.size(); ++i)
-    {
-        bool ok{true};
-        for (size_t j = 0; ok && (j < substr.size()); ++j)
-            ok = (str[i + j] == substr[j]);
-        if (ok)
-            return true;
-    }
-    return false;
-}
 
 class UserHandler : public HTTPRequestHandler
 {
@@ -115,15 +100,14 @@ public:
     {
     }
 
-    Poco::JSON::Object::Ptr remove_password(Poco::JSON::Object::Ptr src)
+    Poco::JSON::Object::Ptr mask_password(Poco::JSON::Object::Ptr src)
     {
         if (src->has("password"))
             src->set("password", "*******");
         return src;
     }
 
-    void handleRequest(HTTPServerRequest &request,
-                       HTTPServerResponse &response)
+    void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response)
     {
         HTMLForm form(request, request.stream());
         try
@@ -139,7 +123,7 @@ public:
                     response.setChunkedTransferEncoding(true);
                     response.setContentType("application/json");
                     std::ostream &ostr = response.send();
-                    Poco::JSON::Stringifier::stringify(remove_password(result->toJSON()), ostr);
+                    Poco::JSON::Stringifier::stringify(mask_password(result->toJSON()), ostr);
                     return;
                 }
                 else
@@ -158,7 +142,7 @@ public:
                     return;
                 }
             }
-            else if (hasSubstr(request.getURI(), "/auth"))
+            else if (hasSubstr(request.getURI(), "/user/auth"))
             {
 
                 std::string scheme;
@@ -195,7 +179,7 @@ public:
                 Poco::JSON::Stringifier::stringify(root, ostr);
                 return;
             }
-            else if (hasSubstr(request.getURI(), "/search"))
+            else if (hasSubstr(request.getURI(), "/user/search"))
             {
 
                 std::string fn = form.get("first_name");
@@ -203,7 +187,7 @@ public:
                 auto results = database::User::search(fn, ln);
                 Poco::JSON::Array arr;
                 for (auto s : results)
-                    arr.add(remove_password(s.toJSON()));
+                    arr.add(mask_password(s.toJSON()));
                 response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
                 response.setChunkedTransferEncoding(true);
                 response.setContentType("application/json");
@@ -281,7 +265,7 @@ public:
         root->set("type", "/errors/not_found");
         root->set("title", "Internal exception");
         root->set("status", Poco::Net::HTTPResponse::HTTPStatus::HTTP_NOT_FOUND);
-        root->set("detail", "request ot found");
+        root->set("detail", "Request not found");
         root->set("instance", "/user");
         std::ostream &ostr = response.send();
         Poco::JSON::Stringifier::stringify(root, ostr);

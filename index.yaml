@@ -1,13 +1,13 @@
 openapi: '3.0.0'
 info:
-  version: '1.0.0'
-  title: 'Arch Lab Example API'
-  description: Пример API для первого домашнего задания по курсу Архитектура программных систем
+  version: '1.1.0'
+  title: 'Arch Lab API'
+  description: API для первого домашнего задания по курсу Архитектура программных систем
 servers:
   - url: http://localhost:8080
     description: Example server
 paths:
-  /search:
+  /user/search:
     get:
       summary: Поиск пользователей по маске имени и фамилии
       parameters:
@@ -42,7 +42,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /auth:
+  /user/auth:
     get:
       summary: Проверка аутентификации
       responses:
@@ -127,14 +127,106 @@ paths:
         schema:
           type: string
       responses:
-        '200':
+        200:
           description: Идентификатор, добавленного пользователя
           content:
             application/json:
               schema:
-                type: integer
+                $ref: '#/components/schemas/user_id'
         404:
           description: Ошибка добавления пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /path:
+    get:
+      summary: Чтение информации о пути
+      parameters:
+      - name: id
+        description: Уникальный идентификатор пути
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Найденный путь
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/path'
+        404:
+          description: Путь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: Добавление нового пути
+      parameters:
+      - name: startpoint
+        description: Начальная точка
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: endpoint
+        description: Конечная точка
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Идентификатор добавленного пути
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/path_id'
+        404:
+          description: Ошибка добавления пути
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /path/search:
+    get:
+      summary: Поиск путей по маске начальной позиции
+      parameters:
+      - name: startpoint
+        description: Начальная точка
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Список путей, которые начинаются с заданной точки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/users'
+        404:
+          description: Пути не обнаружены
           content:
             application/json:
               schema:
@@ -178,6 +270,26 @@ components:
         login:
           type: string
         password:
+          type: string
+    path_id:
+      description: Уникальный идентификатор пути
+      type: integer
+    paths:
+      type: array
+      items:
+        $ref: '#/components/schemas/path'
+    path:
+      type: object
+      required:
+        - id
+        - startpoint
+        - endpoint
+      properties:
+        id:
+          $ref: '#/components/schemas/path_id'
+        startpoint:
+          type: string
+        endpoint:
           type: string
     Error:
       type: object

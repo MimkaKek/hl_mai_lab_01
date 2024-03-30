@@ -20,8 +20,10 @@
 #include "Poco/Util/OptionSet.h"
 #include "Poco/Util/HelpFormatter.h"
 #include "../lib/common.h"
+#include <Poco/Hash.h>
 #include <iostream>
 #include <fstream>
+#include <unordered_map>
 
 using Poco::DateTimeFormat;
 using Poco::DateTimeFormatter;
@@ -154,7 +156,9 @@ public:
                 if (scheme == "Basic")
                 {
                     get_identity(info, login, password);
-                    if (auto id = database::User::auth(login, password))
+                    auto hasher = Poco::Hash<std::string>();
+                    std::size_t hashed_pass = hasher(password);
+                    if (auto id = database::User::auth(login, hashed_pass))
                     {
                         std::string token = generate_token(*id,login);
                         response.setStatus(Poco::Net::HTTPResponse::HTTP_OK);
@@ -201,12 +205,13 @@ public:
                 if (form.has("first_name") && form.has("last_name") && form.has("email") && form.has("title") && form.has("login") && form.has("password"))
                 {
                     database::User user;
+                    auto hasher = Poco::Hash<std::string>();
                     user.first_name() = form.get("first_name");
                     user.last_name() = form.get("last_name");
                     user.email() = form.get("email");
                     user.title() = form.get("title");
                     user.login() = form.get("login");
-                    user.password() = form.get("password");
+                    user.password() = hasher(form.get("password"));
 
                     bool check_result = true;
                     std::string message;

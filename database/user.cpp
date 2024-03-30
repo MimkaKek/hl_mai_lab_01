@@ -7,6 +7,7 @@
 #include <Poco/JSON/Parser.h>
 #include <Poco/Dynamic/Var.h>
 
+#include <cstddef>
 #include <sstream>
 #include <exception>
 
@@ -28,7 +29,7 @@ namespace database
                         << "first_name VARCHAR(256) NOT NULL,"
                         << "last_name VARCHAR(256) NOT NULL,"
                         << "login VARCHAR(256) NOT NULL,"
-                        << "password VARCHAR(256) NOT NULL,"
+                        << "password BIGINT NOT NULL,"
                         << "email VARCHAR(256) NULL,"
                         << "title VARCHAR(1024) NULL);",
                 now;
@@ -56,7 +57,7 @@ namespace database
         root->set("email", _email);
         root->set("title", _title);
         root->set("login", _login);
-        root->set("password", _password);
+        root->set("password", _hashed_pass);
 
         return root;
     }
@@ -74,12 +75,12 @@ namespace database
         user.email() = object->getValue<std::string>("email");
         user.title() = object->getValue<std::string>("title");
         user.login() = object->getValue<std::string>("login");
-        user.password() = object->getValue<std::string>("password");
+        user.password() = object->getValue<std::size_t>("password");
 
         return user;
     }
 
-    std::optional<long> User::auth(std::string &login, std::string &password)
+    std::optional<long> User::auth(std::string &login, std::size_t &hashed_pass)
     {
         try
         {
@@ -89,7 +90,7 @@ namespace database
             select << "SELECT id FROM users where login=$1 and password=$2",
                 into(id),
                 use(login),
-                use(password),
+                use(hashed_pass),
                 range(0, 1); //  iterate over result set one row at a time
 
             select.execute();
@@ -123,7 +124,7 @@ namespace database
                 into(a._email),
                 into(a._title),
                 into(a._login),
-                into(a._password),
+                into(a._hashed_pass),
                 use(id),
                 range(0, 1); //  iterate over result set one row at a time
 
@@ -160,7 +161,7 @@ namespace database
                 into(a._email),
                 into(a._title),
                 into(a._login),
-                into(a._password),
+                into(a._hashed_pass),
                 range(0, 1); //  iterate over result set one row at a time
 
             while (!select.done())
@@ -201,7 +202,7 @@ namespace database
                 into(a._email),
                 into(a._title),
                 into(a._login),
-                into(a._password),
+                into(a._hashed_pass),
                 use(first_name),
                 use(last_name),
                 range(0, 1); //  iterate over result set one row at a time
@@ -241,7 +242,7 @@ namespace database
                 use(_email),
                 use(_title),
                 use(_login),
-                use(_password);
+                use(_hashed_pass);
 
             insert.execute();
 
@@ -274,9 +275,9 @@ namespace database
         return _login;
     }
 
-    const std::string &User::get_password() const
+    const std::size_t &User::get_password() const
     {
-        return _password;
+        return _hashed_pass;
     }
 
     std::string &User::login()
@@ -284,9 +285,9 @@ namespace database
         return _login;
     }
 
-    std::string &User::password()
+    std::size_t &User::password()
     {
-        return _password;
+        return _hashed_pass;
     }
 
     long User::get_id() const

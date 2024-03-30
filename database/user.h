@@ -1,6 +1,7 @@
 #ifndef USER_H
 #define USER_H
 
+#include <cstddef>
 #include <string>
 #include <vector>
 #include "Poco/JSON/Object.h"
@@ -16,7 +17,7 @@ namespace database
             std::string _email;
             std::string _title;
             std::string _login;
-            std::string _password;
+            std::size_t _hashed_pass;
 
         public:
 
@@ -28,7 +29,7 @@ namespace database
             const std::string &get_email() const;
             const std::string &get_title() const;
             const std::string &get_login() const;
-            const std::string &get_password() const;
+            const std::size_t &get_password() const;
 
             long&        id();
             std::string &first_name();
@@ -36,11 +37,11 @@ namespace database
             std::string &email();
             std::string &title();
             std::string &login();
-            std::string &password();
+            std::size_t &password();
 
             static void init();
             static std::optional<User> read_by_id(long id);
-            static std::optional<long> auth(std::string &login, std::string &password);
+            static std::optional<long> auth(std::string &login, std::size_t &hashed_pass);
             static std::vector<User> read_all();
             static std::vector<User> search(std::string first_name,std::string last_name);
             void save_to_mysql();

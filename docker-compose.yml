@@ -6,6 +6,7 @@ services:
     build:
       context: ./my_service
       dockerfile: release
+    #   dockerfile: debug
     # volumes:
     #   - .:/app/
     environment:

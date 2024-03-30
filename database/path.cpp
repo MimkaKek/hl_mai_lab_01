@@ -28,7 +28,7 @@ namespace database
 
             create_stmt << "CREATE TABLE IF NOT EXISTS paths (id SERIAL,"
                         << "startpoint VARCHAR(256) NOT NULL,"
-                        << "endpoint VARCHAR(256) NOT NULL);", now;
+                        << "finpoint VARCHAR(256) NOT NULL);", now;
 
         }
 
@@ -49,7 +49,7 @@ namespace database
         Poco::JSON::Object::Ptr root = new Poco::JSON::Object();
         root->set("id", _id);
         root->set("startpoint", _startpoint);
-        root->set("end", _endpoint);
+        root->set("endpoint", _endpoint);
         return root;
     }
 
@@ -62,7 +62,7 @@ namespace database
 
         path.id() = object->getValue<long>("id");
         path.startpoint() = object->getValue<std::string>("startpoint");
-        path.endpoint() = object->getValue<std::string>("end");
+        path.endpoint() = object->getValue<std::string>("endpoint");
 
         return path;
     }
@@ -74,7 +74,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement select(session);
             Path a;
-            select << "SELECT id, startpoint, endpoint FROM paths where id=$1",
+            select << "SELECT id, startpoint, finpoint FROM paths where id=$1",
                 into(a._id),
                 into(a._startpoint),
                 into(a._endpoint),
@@ -107,7 +107,7 @@ namespace database
             Statement select(session);
             std::vector<Path> result;
             Path a;
-            select << "SELECT id, startpoint, endpoint FROM paths",
+            select << "SELECT id, startpoint, finpoint FROM paths",
                 into(a._id),
                 into(a._startpoint),
                 into(a._endpoint),
@@ -143,7 +143,7 @@ namespace database
             std::vector<Path> result;
             Path a;
             startpoint += "%";
-            select << "SELECT id, startpoint, endpoint FROM paths where startpoint LIKE $1",
+            select << "SELECT id, startpoint, finpoint FROM paths where startpoint LIKE $1",
                 into(a._id),
                 into(a._startpoint),
                 into(a._endpoint),
@@ -179,7 +179,7 @@ namespace database
             Poco::Data::Session session = database::Database::get().create_session();
             Poco::Data::Statement insert(session);
 
-            insert << "INSERT INTO paths (startpoint,endpoint) VALUES($1, $2)",
+            insert << "INSERT INTO paths (startpoint,finpoint) VALUES($1, $2)",
                 use(_startpoint),
                 use(_endpoint);
 

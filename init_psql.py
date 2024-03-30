@@ -16,12 +16,12 @@ def init_paths() -> None:
     paths = get_json_arr('paths_init.json')
     for path in paths:
         resp = requests.post(f'http://localhost:8080/path?startpoint={path["startpoint"]}&endpoint={path["endpoint"]}')
+        print(f'http://localhost:8080/path?startpoint={path["startpoint"]}&endpoint={path["endpoint"]}')
         print(resp.status_code)
-        print(resp.text)
 
 def main() -> None:
+    # init_users()
     init_paths()
-    init_users()
 
 if __name__ == '__main__':
     main()

@@ -56,7 +56,6 @@ public:
     void handleRequest(HTTPServerRequest &request, HTTPServerResponse &response)
     {
         HTMLForm form(request, request.stream());
-        std::cout << "Path Handle begin" << std::endl;
         try
         {
             if (hasSubstr(request.getURI(), "/path") && form.has("id") && (request.getMethod() == Poco::Net::HTTPRequest::HTTP_GET))
